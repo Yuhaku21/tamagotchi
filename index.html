@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tamagotchi Game</title>
+    <style>
+      body {
+        font-family: "Comic Sans MS", cursive, sans-serif;
+        margin: 0;
+      }
+      img {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: auto;
+      }
+      .container {
+        box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+        border-radius: 24px;
+        padding-bottom: 16px;
+        text-align: center;
+        width: 90%;
+        margin: auto;
+        margin-top: 50px;
+        margin-bottom: 50px;
+        border: rgba(128, 128, 128, 0.299) solid 1px;
+      }
+      h1 {
+        color: #b67352;
+        margin-bottom: -8px;
+      }
+      button {
+        font-family: "Comic Sans MS", cursive, sans-serif;
+        padding: 10px;
+        border-radius: 8px;
+        margin: 5px;
+        background-color: #b67352;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #252525;
+      }
+      .status-bar {
+        margin: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .health-bar,
+      .happiness-bar {
+        width: 50%;
+        max-width: 200px;
+        height: 20px;
+        background-color: lightgreen;
+        margin-bottom: 5px;
+        border-radius: 5px;
+      }
+      .button {
+        display: flex;
+        justify-content: center;
+      }
+      /* Style untuk popup */
+      .popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fefefe;
+        padding: 20px;
+        border: 1px solid #888;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        z-index: 1;
+      }
+      .popup-content {
+        text-align: center;
+      }
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .close:hover {
+        color: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" style="padding-top: 4px">
+      <h1>Tamagotchi</h1>
+      <img id="tamagotchiImg" src="tamagotchi.gif" alt="" width="200px" />
+      <h2 id="tamagotchiName">Pikachu</h2>
+      <button style="margin-top: -12px" onclick="changeName()">Ubah Nama</button>
+      <div class="status-bar" style="margin-top: -16px">
+        <h4>Status Health</h4>
+        <div class="health-bar" id="healthBar"></div>
+        <h4>Status Happiness</h4>
+        <div class="happiness-bar" id="happinessBar"></div>
+        <div class="button" style="margin-top: 20px">
+          <button id="feedButton" onclick="feed()">Beri Makan 🌮</button>
+          <button id="interactionButton" onclick="startInteraction()">Thunder Bolt ⚡</button>
+          <button id="reviveButton" onclick="revivePet()" style="display: none">Hidupkan Kembali</button>
+        </div>
+      </div>
+    </div>
+    <p style="text-align: center"><b>-Made By Y.A-</b></p>
+
+    <!-- Popup untuk mengubah nama -->
+    <div id="namePopup" class="popup">
+      <div class="popup-content">
+        <span class="close" onclick="closePopup()">&times;</span>
+        <label for="newName">Masukkan Nama Baru:</label>
+        <input type="text" id="newName" />
+        <button onclick="updateName()">Simpan</button>
+      </div>
+    </div>
+
+    <script>
+      let maxBarWidth = 50;
+      let originalImgSrc = "tamagotchi.gif";
+      let isDead = false;
+
+      function updateBars() {
+        let healthPercentage = (getSavedValue("health") / 100) * maxBarWidth;
+        let happinessPercentage = (getSavedValue("happiness") / 100) * maxBarWidth;
+
+        document.getElementById("healthBar").style.width = healthPercentage + "%";
+        document.getElementById("happinessBar").style.width = happinessPercentage + "%";
+
+        if (getSavedValue("health") <= 0) {
+          document.getElementById("tamagotchiImg").src = "";
+          document.getElementById("tamagotchiImg").alt = "Peliharaanmu sudah mati 💀💀💀";
+          hideButtons();
+          isDead = true;
+        }
+      }
+
+      function feed() {
+        if (!isDead) {
+          saveValue("health", parseInt(getSavedValue("health")) + 10);
+          saveValue("happiness", parseInt(getSavedValue("happiness")) + 5);
+          updateBars();
+        }
+      }
+
+      function startInteraction() {
+        if (!isDead) {
+          document.getElementById("tamagotchiImg").src = "thunder.gif";
+          setTimeout(() => {
+            document.getElementById("tamagotchiImg").src = originalImgSrc;
+            saveValue("happiness", parseInt(getSavedValue("happiness")) + 10);
+            updateBars();
+          }, 1500);
+        }
+      }
+
+      setInterval(() => {
+        if (!isDead && parseInt(getSavedValue("health")) > 0) {
+          saveValue("health", parseInt(getSavedValue("health")) - 5);
+          updateBars();
+        }
+      }, 7200000);
+
+      setInterval(() => {
+        if (!isDead && parseInt(getSavedValue("happiness")) > 0) {
+          saveValue("happiness", parseInt(getSavedValue("happiness")) - 5);
+          updateBars();
+        }
+      }, 9000);
+
+      function hideButtons() {
+        document.getElementById("feedButton").style.display = "none";
+        document.getElementById("interactionButton").style.display = "none";
+        document.getElementById("reviveButton").style.display = "block";
+      }
+
+      function revivePet() {
+        saveValue("health", 100);
+        saveValue("happiness", 100);
+        isDead = false;
+        document.getElementById("tamagotchiImg").src = originalImgSrc;
+        document.getElementById("feedButton").style.display = "block";
+        document.getElementById("interactionButton").style.display = "block";
+        document.getElementById("reviveButton").style.display = "none";
+        updateBars();
+      }
+
+      function changeName() {
+        document.getElementById("namePopup").style.display = "block";
+      }
+
+      function closePopup() {
+        document.getElementById("namePopup").style.display = "none";
+      }
+
+      function updateName() {
+        let newName = document.getElementById("newName").value;
+        saveValue("name", newName);
+        document.getElementById("tamagotchiName").innerText = newName;
+        closePopup();
+      }
+
+      // Fungsi untuk menyimpan nilai ke localStorage
+      function saveValue(key, value) {
+        localStorage.setItem(key, value);
+      }
+
+      // Fungsi untuk mendapatkan nilai dari localStorage
+      function getSavedValue(key) {
+        return localStorage.getItem(key) || 0;
+      }
+
+      // Memanggil fungsi untuk menginisialisasi nilai awal
+      window.onload = function () {
+        document.getElementById("tamagotchiName").innerText = getSavedValue("name") || "Pikachu";
+        updateBars();
+      };
+    </script>
+  </body>
+</html>
